@@ -35,7 +35,7 @@ jobs:
           USER: ${{ secrets.SERVER_USER }}
           PORT: ${{ secrets.SERVER_PORT }}
           KEY: ${{ secrets.SERVER_KEY }}
-          DEST: /var/www/react-app
+          DEST: /var/www/ci-cd-testing
         run: |
           echo "${KEY}" > deploy_key
           chmod 600 deploy_key

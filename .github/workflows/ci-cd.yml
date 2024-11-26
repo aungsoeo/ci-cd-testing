@@ -1,39 +1,43 @@
-name: DevOps-GitHibActions
-on: push
+name: React CI/CD
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to the main branch
+
 jobs:
-  # Build Job
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Code
+      # Step 1: Checkout code
+      - name: Checkout code
         uses: actions/checkout@v3
-      - name: Install Node
+
+      # Step 2: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
-      - name: Install Dependencies
+          node-version: 20
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
         run: npm install
-      - name: Build Project
+
+      # Step 4: Build the React app
+      - name: Build app
         run: npm run build
-      - name: Upload artifact to enable deployment
-        uses: actions/upload-artifact@v3
-        with:
-          name: production-files
-          path: ./dist
-  # Deploy Job
-  deploy:
-    # Add a dependency to the build job
-    needs: build
-    # Specify runner + deployment step
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: production-files
-          path: ./dist
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.CI_CD_SECRET_KEY }}
-          publish_dir: ./dist
+
+      # Step 5: Deploy to DigitalOcean server
+      - name: Deploy to server
+        env:
+          HOST: ${{ secrets.SERVER_HOST }}
+          USER: ${{ secrets.SERVER_USER }}
+          PORT: ${{ secrets.SERVER_PORT }}
+          KEY: ${{ secrets.SERVER_KEY }}
+          DEST: /var/www/react-app
+        run: |
+          echo "${KEY}" > deploy_key
+          chmod 600 deploy_key
+          scp -i deploy_key -P $PORT -r build/* $USER@$HOST:$DEST
+          ssh -i deploy_key -p $PORT $USER@$HOST "sudo systemctl restart nginx"

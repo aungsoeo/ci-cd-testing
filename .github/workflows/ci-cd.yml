@@ -10,25 +10,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Set up Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20
 
-      # Step 3: Install dependencies
       - name: Install dependencies
         run: npm install
 
-      # Step 4: Build the React app
       - name: Build app
         run: npm run build
 
-      # Step 5: Deploy to DigitalOcean server
       - name: Deploy to server
         env:
           HOST: ${{ secrets.SERVER_HOST }}
@@ -41,5 +36,6 @@ jobs:
           chmod 600 deploy_key
           mkdir -p ~/.ssh
           ssh-keyscan -p $PORT $HOST >> ~/.ssh/known_hosts
+          ssh -i deploy_key -p $PORT $USER@$HOST "echo 'SSH connection successful'"
           scp -i deploy_key -P $PORT -r build/* $USER@$HOST:$DEST
           ssh -i deploy_key -p $PORT $USER@$HOST "sudo systemctl restart nginx"
